@@ -1,4 +1,4 @@
-from sqlite3 import SQLITE_CREATE_TABLE
+
 
 import numpy as np
 import pandas as pd
@@ -7,6 +7,7 @@ import scipy.integrate as integrate
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import argparse
+import os
 
 
 class PyElec():
@@ -16,6 +17,7 @@ class PyElec():
         self.reference = "Based on work at JLAB: RCD-TBD-96 _001 (Stapleton) and  RCD-RPN-97 _001 (Degtiarenko)"
         # set program verbosity - 3 prints everything
         self.verbose = 3
+        self.data_dir = os.path.join(os.getcwd(), "Data")
 
         # setup global defaults
         self.N_A = 6.022e23
@@ -34,7 +36,7 @@ class PyElec():
         self.hall_c_w = 48.62
         self.hall_b_w = 31.8
 
-    def SheildingCoefficiencts(self, energy_mev):
+    def SheildingCoefficients(self, energy_mev):
         """
         Return the shielding coefficients based on energy of the beam
         """
@@ -244,9 +246,9 @@ class PyElec():
             return electro_production
 
     def get_element_prop(self, elem="H", fle="target_za_data.csv"):
-        if (self.verbose > 0):
+        if (self.verbose >= 0):
             print("Reading element data from {}".format(fle))
-        tgt_za = pd.read_csv(fle)
+        tgt_za = pd.read_csv(os.path.join(self.data_dir, fle))
 
         if (self.verbose == 3):
             print(tgt_za)
@@ -261,10 +263,10 @@ class PyElec():
 
     def get_material_prop(self, elem="H", fle="mat_radlength_density.csv"):
 
-        if (self.verbose > 0):
+        if (self.verbose >= 0):
             print("Reading element data from {}".format(fle))
 
-        mat_prop = pd.read_csv(fle)
+        mat_prop = pd.read_csv(os.path.join(self.data_dir, fle))
 
         if (self.verbose == 3):
             print(mat_prop)
@@ -279,7 +281,7 @@ class PyElec():
 
     def get_hall_data(self, fle="hall_data.csv"):
 
-        hall_df = pd.read_csv(fle)
+        hall_df = pd.read_csv(os.path.join(self.data_dir, fle))
         self.hall_df = hall_df
 
         if (self.verbose == 3):
@@ -287,7 +289,7 @@ class PyElec():
 
     def get_data_params(self, fle="data_parameters.json"):
 
-        f = open(fle,'r')
+        f = open(os.path.join(self.data_dir, fle),'r')
         j_data = json.load(f)
         f.close()
 
@@ -388,7 +390,7 @@ class PyElec():
         b = hall_df.loc[hall_df["name"] == "b", hall].values
 
         # calculate the shielding coefficients with the energy sent as MeV
-        self.SheildingCoefficiencts(energy_GeV * 1000)
+        self.SheildingCoefficients(energy_GeV * 1000)
 
         # the original workbook implmented trapezoidal integration (TRAPZD function), based on 
         # Numerical Recipes in Fortran 77, Willam Press et al., Cambridge Press, 1986
@@ -691,7 +693,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Run PyElec with configuration arguments')
 
     parser.add_argument('--config', dest='config',
-                        default="setups.json",
+                        default=os.path.join(os.getcwd(), "Run_Configuration", "setups.json"),
                         help='sum the integers (default: find the max)')
 
     args = parser.parse_args()
