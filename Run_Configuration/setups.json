@@ -21,7 +21,7 @@
         "setup_name":"2",
         "hall":"hall_a",
         "target_elem":["N", "Be", "Al", "N", "Si", "O", "Be"],
-        "tgt_thick_mg_cm2":[904, 46.9, 1.4, 26.2, 39.2, 44.8, 93.9],
+        "tgt_thick_mg_cm2":[90.4, 46.9, 1.4, 26.2, 39.2, 44.8, 93.9],
         "position_m":[0, -0.4, -0.4, 0, 0, 0, 0.5],
         "critical_radius_cm":4.445,
         "critical_distance_m":1.33,

@@ -1,0 +1,21 @@
+{   "out_file":"Hall_A-GEn-E12-09-016.xlsx",
+    "verbose":0,
+    "plot_map":true,
+    "plot_rbm":true,
+    "plot_base_name":"Hall_A-GEn-E12-09-016",
+    "dose_limit_ur":1e4,
+    "setups":[
+        {
+        "setup_name":"1",
+        "hall":"hall_a",
+        "target_elem":["Be"],
+        "tgt_thick_mg_cm2":[93.9],
+        "position_m":[0.5],
+        "critical_radius_cm":4.445,
+        "critical_distance_m":1.33,
+        "scatter_factor":0.5,
+        "current_uA":60,
+        "energy_GeV":4.4
+        }     
+    ]
+}

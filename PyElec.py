@@ -15,6 +15,12 @@ class PyElec():
         self.version = "2022.0.0.0"
         self.authoring = "Adam Stavola, Thomas Jefferson National Accelerator Facility"
         self.reference = "Based on work at JLAB: RCD-TBD-96 _001 (Stapleton) and  RCD-RPN-97 _001 (Degtiarenko)"
+
+        print("******************************************")
+        print("PyElect {}".format(self.version))
+        print(self.authoring)
+        print(self.reference)
+        print("******************************************")
         # set program verbosity - 3 prints everything
         self.verbose = 3
         self.data_dir = os.path.join(os.getcwd(), "Data")
@@ -110,7 +116,7 @@ class PyElec():
         z - array of  z values
         a = array of A values
         t - array of target thicknesses in g/cm2
-        X_t_o - array of relative thicknesses in t / X_o
+        X_t_o - array of thicknesses in  X_o
         position - array of the target locations in cm
         E_o_MeV - beam energy in MeV
         current_uA - beam current in uA
@@ -246,7 +252,7 @@ class PyElec():
             return electro_production
 
     def get_element_prop(self, elem="H", fle="target_za_data.csv"):
-        if (self.verbose >= 0):
+        if (self.verbose > 0):
             print("Reading element data from {}".format(fle))
         tgt_za = pd.read_csv(os.path.join(self.data_dir, fle))
 
@@ -263,7 +269,7 @@ class PyElec():
 
     def get_material_prop(self, elem="H", fle="mat_radlength_density.csv"):
 
-        if (self.verbose >= 0):
+        if (self.verbose > 0):
             print("Reading element data from {}".format(fle))
 
         mat_prop = pd.read_csv(os.path.join(self.data_dir, fle))
@@ -487,10 +493,13 @@ class PyElec():
         location = []
         rbm_doses = []
         r = []
-        for i in range(1, 7):
-            name = "RBM " + str(i)
+
+
+        for name in hall_df[hall_df["type"]=="location"]["name"].unique():
+            #name = "RBM " + str(i)
             location.append(name)
             rr = hall_df.loc[hall_df['name'] == name, hall].values[0]
+
             r.append(rr)
             rbm_dose = q_integral * total_loss * 2e-15  * np.exp(-rr / self.lam) / np.power(rr+40, 2)
             rbm_doses.append(rbm_dose) 
@@ -514,8 +523,6 @@ class PyElec():
         rbm_doses = rbm_doses * 1e8
         dose_df = pd.DataFrame({"location": location, "r":r, "dose_rate-"+str(setup_config_name):rbm_doses})
 
-        #dose_df = dose_df.sort_values("r")
-        
 
         return dose_df, dose_map
         
@@ -557,52 +564,8 @@ def main_test():
 
     a_dose_df.to_excel("Hall_A-redo.xlsx")    
         
-    
 
 
-    # c_dose_df, c_dose_map = main(hall="hall_c_rr", element=["Cu", "Cu"],
-    #         rbm_run=False, start_dist=-100, end_dist=500, hall_loc_y=200+ hall_a_w + hall_b_w + hall_c_w/2, hall_loc_x=100)
-
-
-
-    # a_dose_df["r"] = a_dose_df.apply(lambda x: x["r"] + hall_a_w/2, axis=1)
-    # c_dose_df["r"] = c_dose_df.apply(lambda x: x["r"] + hall_a_w + hall_b_w + hall_c_w/2, axis=1)
-
-    # a2_dose_df, a2_dose_map = main(hall="hall_a_rr", element=["Pb", "Pb"],
-    #         rbm_run=False, start_dist=-100, end_dist=500, hall_loc_y=56.4/2+200, hall_loc_x=100)
-    # c2_dose_df, c2_dose_map = main(hall="hall_c_rr", element=["Pb", "Pb"],
-    #         rbm_run=False, start_dist=-100, end_dist=500, hall_loc_y=200+ hall_a_w + hall_b_w + hall_c_w/2, hall_loc_x=100)
-
-    
-
-    # #plt.imshow(np.asarray(a_dose_map))
-    # plt.contour(np.asarray(a_dose_map), 
-    #         10, cmap=cm.jet, origin='lower')
-    # plt.text(plt.xlim()[1]/2, plt.ylim()[0]/2, "Hall A", color="tab:red", bbox=dict(fill=True, edgecolor='red', linewidth=2))
-    # plt.colorbar()
-    # plt.title("Difference Between Pb and Cu of Same Thickness")
-    # plt.show()    
-   
-    # plt.imshow(np.log(-np.asarray(a_dose_map) - np.asarray(c_dose_map) + np.asarray(a2_dose_map) + np.asarray(c2_dose_map)))
-    # plt.contour((-np.asarray(a_dose_map) - np.asarray(c_dose_map) + np.asarray(a2_dose_map) + np.asarray(c2_dose_map)), 
-    #         10, cmap=cm.jet, origin='lower')
-    # plt.colorbar()
-    # plt.title("Difference Between Pb and Cu of Same Thickness")
-    # plt.show()
-
-    # print(a_dose_df)
-    # print(c_dose_df)
-
-    # fig, ax = plt.subplots()
-    # a_dose_df.plot(x='r', y="dose_rate", label="hall a", ax=ax)
-    # c_dose_df.plot(x='r', y="dose_rate", label="hall c", ax=ax)
-    # ax.set_ylabel("Dose Rate $\mu R$ / hr")
-    # ax.set_xlabel("Distance (m)")
-    # ax.set_yscale('log')
-    # ax.set_title("Dose Rates")
-    # ax.legend()
-    # plt.show()
-    # 
 
 def main(config):
 
@@ -623,7 +586,7 @@ def main(config):
     total_map = None
     for i in range(len(config["setups"])):
 
-        dose_df, dose_map = pylec.RunForHall(hall="hall_a_rr", 
+        dose_df, dose_map = pylec.RunForHall(hall=config["setups"][i]["hall"]+ "_rr", 
                                             setup_config_name =config["setups"][i]["setup_name"],
                                             position_m =config["setups"][i]["position_m"],
                                             tgt_thick_mg_cm2 =config["setups"][i]["tgt_thick_mg_cm2"],
@@ -667,12 +630,14 @@ def main(config):
                 bbox=dict(fill=True, edgecolor='red', linewidth=2, facecolor='white', boxstyle='round'))
         ax.legend(loc='upper left')
         print(ax.get_xlim())
+        ax.set_xticks([])
+        ax.set_yticks([])
 
         fig.colorbar(im)
   
         
-        ax.set_title("Dose Rate Map (uR/hr) Total - {}".format(config["plot_base_name"]))
-        plt.show()  
+        ax.set_title("Dose Rate Map (uR) Total - {}".format(config["plot_base_name"]))
+        plt.savefig(config["plot_base_name"] + "-rbm_map_plot.png")
 
     if (config["plot_rbm"]):
         fontsize= 14
@@ -682,7 +647,7 @@ def main(config):
 
         plot_df.plot.bar(x="location", ax=ax)
         ax.set_ylabel("Dose Rate $(\mu R/hr)$", fontsize=fontsize)
-        plt.show()
+        plt.savefig(config["plot_base_name"] + "-rbm_bar_plot.png")
     
     print(res_dose_df)
     res_dose_df.to_excel(config["out_file"])
@@ -693,7 +658,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Run PyElec with configuration arguments')
 
     parser.add_argument('--config', dest='config',
-                        default=os.path.join(os.getcwd(), "Run_Configuration", "setups.json"),
+                        default=os.path.join(os.getcwd(), "Run_Configuration", "setup_single.json"),
                         help='sum the integers (default: find the max)')
 
     args = parser.parse_args()
