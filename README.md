@@ -8,3 +8,11 @@
 	RBM 4	-0.090%	-0.090%	-0.088%	-0.090%	-0.090%	-0.092%	-0.093%
 	RBM 5	-0.090%	-0.090%	-0.088%	-0.090%	-0.090%	-0.092%	-0.093%
 	RBM 6	-0.090%	-0.090%	-0.088%	-0.090%	-0.090%	-0.092%	-0.093%
+
+
+	| Variable | Meaning                        | Units | Role                         |
+| -------- | ------------------------------ | ----- | ---------------------------- |
+| **b**    | Empirical attenuation exponent | —     | Fit to shielding attenuation |
+| **tr**   | Vertical roof thickness        | cm    | Baseline shielding thickness |
+| **td**   | Dome rise (cap height)         | cm    | Controls curvature effect    |
+| **ri**   | Inner dome radius              | cm    | Sets dome curvature scale    |

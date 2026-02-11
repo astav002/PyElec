@@ -54,10 +54,10 @@ class PyElec():
         if (energy_gev  >= 1):
             pass
         elif (energy_gev < 0.5):
-            coeff_B = coeff_B * 1.6 * energy_gev ^ 1.5
+            coeff_B = coeff_B * 1.6 * energy_gev ** 1.5
         else:
             coeff_B = coeff_B * (0.566 + 0.434 * (energy_gev - 0.5) / 0.5)
-            coeff_C = coeff_C * (-0.1668221 + 0.8889406 * energy_gev + 0.2638326 * energy_gev ^ 2)      
+            coeff_C = coeff_C * (-0.1668221 + 0.8889406 * energy_gev + 0.2638326 * energy_gev ** 2)      
             
         self.shld_coeff_A = coeff_A
         self.shld_coeff_B = coeff_B
@@ -83,7 +83,10 @@ class PyElec():
         lambda_b = self.lambda_b
         lambda_c = self.lambda_c
 
-        thickness = tr * 1 / np.sqrt(1 - np.power(td*np.sin(x) / ri, 2))
+        # check to ensure not imaginary computation
+        arg = 1 - (td*np.sin(x)/ri)**2
+        arg = np.clip(arg, 1e-12, None)
+        thickness = tr / np.sqrt(arg)        
 
         roof_thickness = np.sin(x) * (a * np.exp(-thickness /lambda_a) + 
                             b*np.exp(- thickness / lambda_b) + 
@@ -390,10 +393,10 @@ class PyElec():
 
         # get information for the shielding thickness around the hall and limits of integration (b)
         hall_df = self.hall_df
-        tr = hall_df.loc[hall_df["name"] == "tr", hall].values
-        td = hall_df.loc[hall_df["name"] == "td", hall].values
-        ri = hall_df.loc[hall_df["name"] == "ri", hall].values
-        b = hall_df.loc[hall_df["name"] == "b", hall].values
+        tr = hall_df.loc[hall_df["name"] == "tr", hall].values[0]
+        td = hall_df.loc[hall_df["name"] == "td", hall].values[0]
+        ri = hall_df.loc[hall_df["name"] == "ri", hall].values[0]
+        b = hall_df.loc[hall_df["name"] == "b", hall].values[0]
 
         # calculate the shielding coefficients with the energy sent as MeV
         self.SheildingCoefficients(energy_GeV * 1000)
@@ -431,7 +434,7 @@ class PyElec():
 
         # if we don't supply the radiation length in material prop we calculate it
             try:
-                tgt_Xo_, tgt_rho_ = self.get_material_prop(elem=element)
+                tgt_Xo_, tgt_rho_ = self.get_material_prop(elem=elm)
                 tgt_Xo.append(tgt_Xo_)
             except:
                 tgt_Xo_ = self.RadiationLength(z_,a_)
@@ -514,7 +517,7 @@ class PyElec():
         dose_map = []
         x = np.linspace(start_dist, end_dist)
         y = np.linspace(start_dist, end_dist)
-        ux, vy = np.meshgrid(x,y,sparse=True)
+        ux, vy = np.meshgrid(x,y)
         dist = np.sqrt((ux - hall_loc_x)**2 + (vy-hall_loc_y)**2)
         dose_map = q_integral * total_loss * 2e-15  * np.exp(-dist / self.lam) / np.power(dist+40, 2) * 1e8
 
@@ -562,7 +565,7 @@ def main_test():
                                 verbose=3,
                                 rbm_run=True)    
 
-    a_dose_df.to_excel("Hall_A-redo.xlsx")    
+    a_dose_df.to_csv("Hall_A-redo.csv")    
         
 
 
@@ -650,7 +653,7 @@ def main(config):
         plt.savefig(config["plot_base_name"] + "-rbm_bar_plot.png")
     
     print(res_dose_df)
-    res_dose_df.to_excel(config["out_file"])
+    res_dose_df.to_csv(config["out_file"])
 
 
 if __name__ == "__main__":
